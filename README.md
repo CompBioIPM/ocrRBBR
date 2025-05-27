@@ -1,4 +1,4 @@
-# ocrRBBR: an R package for the inference of Regression-Based Boolean Rules in multiomic data.
+## ocrRBBR: an R package for the inference of Regression-Based Boolean Rules in multiomic data.
 - This repository contains code and tutorials for executing ocrRBBR.
 - Sample datasets to execute ocrRBBR are stored within the example_data directory.
 - The ocrRBBR package supports parallel execution on multi-CPU platforms, enhancing accessibility for real-world Boolean rule inference applications.
