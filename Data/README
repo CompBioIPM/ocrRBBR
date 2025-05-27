@@ -1,8 +1,11 @@
-mmc1.xlsx provides a summary of Immune Cell Populations Profiled by ATAC-Seq and Their QC Matrices 
+mmc1.xlsx 
+provides a summary of Immune Cell Populations Profiled by ATAC-Seq and Their QC Matrices 
 (Table S1 of Yoshida, Hideyuki et al. The cis-Regulatory Atlas of the Mouse Immune System, Cell, Volume 176, Issue 4, 897 - 912.e20)
 
-mmc2.csv provides RNA-seq data across immune cell types.
+mmc2.csv 
+provides RNA-seq data across immune cell types.
 (Table S2 of Yoshida, Hideyuki et al. The cis-Regulatory Atlas of the Mouse Immune System, Cell, Volume 176, Issue 4, 897 - 912.e20)
 
-ImmGenATAC18_AllOCRsInfo.csv provides ATAC-seq signal intensities across 512,595 cis-regulatory elements active in 86 immunological cell types.
+ImmGenATAC18_AllOCRsInfo.csv 
+provides ATAC-seq signal intensities across 512,595 cis-regulatory elements active in 86 immunological cell types.
 Available from this link on Google Drive https://drive.google.com/file/d/14KS3HItwoRDpg2Z1GtLlw7NTwY_oVokw/view?usp=drive_link
