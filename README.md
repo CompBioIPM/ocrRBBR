@@ -34,9 +34,9 @@ install.packages("doSNOW")
 library(RBBR)
 library(readxl)
 
-atacseq <- as.data.frame(read.csv(file = "D:\\atac combination\\The cis-Regulatory Atlas\\ImmGenATAC18_AllOCRsInfo.csv", header= TRUE, check.names = FALSE))
-rnaseq <- as.data.frame(read.csv(file = "D:\\atac combination\\The cis-Regulatory Atlas\\mmc2.csv", header= TRUE, check.names = FALSE))
-mmc1 <- as.data.frame(read_excel("D:\\atac combination\\The cis-Regulatory Atlas\\mmc1.xlsx", sheet = 1, col_names = TRUE, col_types = "text"))
+atacseq <- as.data.frame(read.csv(file = "ImmGenATAC18_AllOCRsInfo.csv", header= TRUE, check.names = FALSE))
+rnaseq <- as.data.frame(read.csv(file = "mmc2.csv", header= TRUE, check.names = FALSE))
+mmc1 <- as.data.frame(read_excel("mmc1.xlsx", sheet = 1, col_names = TRUE, col_types = "text"))
 cell_type_lineage <- mmc1[ ,c(2,4,5)]
 
 ### Extract shared cell types between ATAC-seq and RNA-seq data
