@@ -27,49 +27,125 @@ install.packages("doSNOW")
 
 <br>
 
-## Step 2. Prepare input files
-### Preprocessing input data
-To preprocess raw data, including steps such as rescaling to bring each input feature within the [0,1] range, you can use the rbbr_scaling() function from the RBBR package.
+### Step 2. Prepare input files
 
 ```R
-# Preprocessing input data
-data_scaled   <- rbbr_scaling(data)
+### Load data
+library(RBBR)
+library(readxl)
+
+atacseq <- as.data.frame(read.csv(file = "D:\\atac combination\\The cis-Regulatory Atlas\\ImmGenATAC18_AllOCRsInfo.csv", header= TRUE, check.names = FALSE))
+rnaseq <- as.data.frame(read.csv(file = "D:\\atac combination\\The cis-Regulatory Atlas\\mmc2.csv", header= TRUE, check.names = FALSE))
+mmc1 <- as.data.frame(read_excel("D:\\atac combination\\The cis-Regulatory Atlas\\mmc1.xlsx", sheet = 1, col_names = TRUE, col_types = "text"))
+cell_type_lineage <- mmc1[ ,c(2,4,5)]
+
+### Extract shared cell types between ATAC-seq and RNA-seq data
+cells_types <- intersect(colnames(atacseq), colnames(rnaseq))
 ```
 
-## Step 3. Train RBBR and use it for prediction purpose on new dataset
-The RBBR package offers the rbbr_train() function for training the model on a dataset to extract Boolean rules, and the rbbr_predictor() function for utilizing the trained model to predict target values or labels on a new dataset.
-
-### Train RBBR
-For training the RBBR model on a dataset to extract Boolean rules, you can use the `rbbr_train()` function.
-
+### Step 3. Extract ATAC-seq signal intensities and normalize per peak
 ```R
-# For training the RBBR model
-trained_model <- rbbr_train(data, max_feature = NA, mode = NA, slope = NA, penalty = NA, weight_threshold = NA, balancing = NA, num_cores = NA)
+atacseq_data <- atacseq[   ,(colnames(atacseq) %in% cells_types)]
+peak_names <- rownames(atacseq_data)
+
+atacseq_data <- t(atacseq_data)
+colnames(atacseq_data) <- peak_names
+
+atacseq_data <- log(1+atacseq_data,10)
+atacseq_data_scaled <- atacseq_data
+for(j in 1:ncol(atacseq_data)){
+  x <- ( atacseq_data[ ,j] - mean(atacseq_data[ ,j]) )/sd(atacseq_data[ ,j])
+  atacseq_data_scaled[ ,j]<- 1/(1+exp(-x))
+}
 ```
 
-```bash
-# Required input arguments
-# data              The dataset with rescaled features within the [0,1] interval.
-#                   Each row represents a sample and each column represents a feature. The target variable (class) should be in the last column.  
+### Step 4. Extract ATAC-seq peaks within ±100 kb of the target gene TSS
+```R
+gene_id   <- "Rag2"
 
-# Optional input arguments  
-# max_feature       The maximum number of input features allowed in a Boolean rule.
-#                   The default value is 3.
- 
-# mode              Choose between "1L" for fitting 1-layered models or "2L" for fitting 2-layered models.
-#                   The default value is "1L".
- 
-# slope             The slope parameter used in the Sigmoid activation function.
-#                   The default value is 10.
- 
-# penalty           The penalty for the number of parameters in the BIC function.
-#                   The default value is 1, but it can be adjusted (e.g., to 10) to favor simpler Boolean rules with fewer features.
-
-# weight_threshold  Conjunctions with weights above this threshold in the fitted ridge regression models will be printed as active conjunctions in the output.
-#                   The default value is 0.
-
-# balancing         This is for adjusting the distribution of classes or categories within a dataset to ensure that each class is adequately represented.
-#                   The default value is "True". Set it to "False", if you don't need to perform the data balancing.
-
-# num_cores         Specify the number of parallel workers (adjust according to your system)
+matched_indices <- grep(paste0("(?<!\\w)", gene_id, "(?!\\w)"), atacseq$genes.within.100Kb, perl = TRUE)
+atacseq_gene <- atacseq[matched_indices, ]
+atacseq_gene <- atacseq_gene[   ,(colnames(atacseq_gene) %in% cells_types)]
 ```
+
+### Step 5. Remove ATAC-seq peaks with low signal intensities (based on p-values) or peaks not conserved across the mammalian genome. This step helps reduce potential false positive predictions by ocrRBBR and can be omitted if desired.
+```R
+peak_info <- atacseq[rownames(atacseq_gene), 1:8]
+
+a <- median(peak_info$mm10.60way.phastCons_scores)
+b <- median(peak_info$`_-log10_bestPvalue`)
+
+peak_info <- peak_info[ ((peak_info$mm10.60way.phastCons_scores>=a)&(peak_info$`_-log10_bestPvalue`>=b)), ]
+log_atacseq <- atacseq_data_scaled[ ,row.names(peak_info)]
+```
+
+### Step 6. Extract and rescale RNA-seq data for the target gene across blood cell lineages.
+```R
+rnaseq_gene <- rnaseq[(rnaseq$X %in% gene_id), ]
+rnaseq_gene <- rnaseq_gene[ ,(colnames(rnaseq_gene) %in% cells_types)]
+rownames(rnaseq_gene) <- gene_id
+
+log_rnaseq <- log(1+rnaseq_gene,10) - min(log(1+rnaseq_gene,10))
+log_rnaseq <- log_rnaseq/quantile(as.numeric(unlist(log_rnaseq)), probs = 0.975 , na.rm = TRUE)
+
+data_scaled <- cbind( log_atacseq, t(log_rnaseq) )
+data_scaled <- replace(data_scaled, data_scaled>=1, 0.9999)
+data_scaled <- replace(data_scaled, data_scaled<=0, 0.0001)
+
+head(data_scaled)
+```
+
+### Step 7. Train the model and output the predicted Boolean regulatory rules.
+```R
+rbbr           <- rbbr_train(data_scaled, max_feature = min(3,ncol(data_scaled)-1), mode = "1L", slope = 10, penalty = NA, weight_threshold = NA, num_cores = NA)
+training process started with  8  computing cores
+  |====================| 100%
+
+
+head(rbbr$boolean_rules_sorted)
+
+                                                                                                        Boolean_Rule                R2       BIC Input_Size Index             Features
+1                              [OR(AND(278352,278381,278384),AND(~278352,278381,278384),AND(278352,~278381,278384))] 0.788633167796687 -306.8806          3   706 278352.278381.278384
+2 [OR(AND(278362,278381,278398),AND(~278362,278381,278398),AND(278362,~278381,278398),AND(~278362,~278381,~278398))] 0.788220565514429 -306.7148          3  1435 278362.278381.278398
+3 [OR(AND(278381,278390,278398),AND(278381,~278390,278398),AND(~278381,~278390,278398),AND(~278381,278390,~278398))] 0.788150615447657 -306.6867          3  2166 278381.278390.278398
+4                              [OR(AND(278355,278381,278384),AND(~278355,278381,278384),AND(278355,~278381,278384))] 0.786059559598788 -305.8519          3  1277 278355.278381.278384
+5                                                                                               [AND(278386,278398)] 0.746314992241634 -304.7223          2   275        278386.278398
+6                                                                                                           [278384] 0.725155753428715 -304.6730          1    16               278384
+  Active_Conjunctions                   Weights Layer1, Sub-Rule1
+1                   3 0.46:0.72:0.34:-2.45:-2.17:-0.4:-0.64:-0.05
+2                   4  0.49:0.75:0.55:-1.6:-2.02:-0.48:-0.67:0.05
+3                   4 0.18:-1.59:0.93:-0.35:0.58:0.13:-1.33:-0.85
+4                   3 0.54:0.75:0.34:-1.99:-1.88:-0.49:-0.6:-0.08
+5                   1                       0.71:-0.8:-1.04:-0.28
+6                   1                                  0.54:-0.54
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
