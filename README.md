@@ -11,12 +11,12 @@ The ocrRBBR codes are written in R version 4.1.3 and have been tested in both Wi
 2. Install the ocrRBBR package by running the following command in R:
    
 ```R
-install.packages("path/to/RBBR_0.1.0.tar.gz", repos = NULL, type = "source")
+install.packages("path/to/ocrRBBR_0.1.0.tar.gz", repos = NULL, type = "source")
 ```
 <br>
 
 ### Dependencies  
-Please ensure that you have the following packages installed. The glmnet package is required to fit ridge regressions. In order to run RBBR with parallel computing, the packages doParallel, foreach, and doSNOW need to be installed.
+Please ensure that you have the following packages installed. The glmnet package is required to fit ridge regressions. In order to run ocrRBBR with parallel computing, the packages doParallel, foreach, and doSNOW need to be installed.
 
 ```R
 install.packages("glmnet")
