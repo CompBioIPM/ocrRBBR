@@ -3,15 +3,15 @@
 - Sample datasets to execute ocrRBBR are stored within the Data directory.
 - The ocrRBBR package supports parallel execution on multi-CPU platforms, enhancing accessibility for real-world Boolean rule inference applications.
 
-## Step 1. ocrRBBR installation
+### Step 1. ocrRBBR installation
 The ocrRBBR codes are written in R version 4.1.3 and have been tested in both Windows and Linux environments. 
 
 ### Installation
-1. Download the compiled package file `ocrRBBR_0.1.0.tar.gz` from this GitHub page.
+1. Download the compiled package file `RBBR_0.1.0.tar.gz` from this GitHub page.
 2. Install the ocrRBBR package by running the following command in R:
    
 ```R
-install.packages("path/to/ocrRBBR_0.1.0.tar.gz", repos = NULL, type = "source")
+install.packages("path/to/RBBR_0.1.0.tar.gz", repos = NULL, type = "source")
 ```
 <br>
 
