@@ -6,7 +6,7 @@
 #### Step 1. ocrRBBR installation
 The ocrRBBR codes are written in R version 4.1.3 and have been tested in both Windows and Linux environments. 
 
-### Installation
+#### Installation
 1. Download the compiled package file `RBBR_0.1.0.tar.gz` from this GitHub page.
 2. Install the ocrRBBR package by running the following command in R:
    
@@ -15,7 +15,7 @@ install.packages("path/to/RBBR_0.1.0.tar.gz", repos = NULL, type = "source")
 ```
 <br>
 
-### Dependencies  
+#### Dependencies  
 Please ensure that you have the following packages installed. The glmnet package is required to fit ridge regressions. In order to run ocrRBBR with parallel computing, the packages doParallel, foreach, and doSNOW need to be installed.
 
 ```R
@@ -27,10 +27,10 @@ install.packages("doSNOW")
 
 <br>
 
-### Step 2. Prepare input files
+#### Step 2. Prepare input files
 
 ```R
-### Load data
+#### Load data
 library(RBBR)
 library(readxl)
 
@@ -39,11 +39,11 @@ rnaseq <- as.data.frame(read.csv(file = "mmc2.csv", header= TRUE, check.names = 
 mmc1 <- as.data.frame(read_excel("mmc1.xlsx", sheet = 1, col_names = TRUE, col_types = "text"))
 cell_type_lineage <- mmc1[ ,c(2,4,5)]
 
-### Extract shared cell types between ATAC-seq and RNA-seq data
+#### Extract shared cell types between ATAC-seq and RNA-seq data
 cells_types <- intersect(colnames(atacseq), colnames(rnaseq))
 ```
 
-### Step 3. Extract ATAC-seq signal intensities and normalize per peak
+#### Step 3. Extract ATAC-seq signal intensities and normalize per peak
 ```R
 atacseq_data <- atacseq[   ,(colnames(atacseq) %in% cells_types)]
 peak_names <- rownames(atacseq_data)
@@ -59,7 +59,7 @@ for(j in 1:ncol(atacseq_data)){
 }
 ```
 
-### Step 4. Extract ATAC-seq peaks within ±100 kb of the target gene TSS
+#### Step 4. Extract ATAC-seq peaks within ±100 kb of the target gene TSS
 ```R
 gene_id   <- "Rag2"
 
@@ -68,7 +68,7 @@ atacseq_gene <- atacseq[matched_indices, ]
 atacseq_gene <- atacseq_gene[   ,(colnames(atacseq_gene) %in% cells_types)]
 ```
 
-### Step 5. Remove ATAC-seq peaks with low signal intensities (based on p-values) or peaks not conserved across the mammalian genome. This step helps reduce potential false positive predictions by ocrRBBR and can be omitted if desired.
+#### Step 5. Remove ATAC-seq peaks with low signal intensities (based on p-values) or peaks not conserved across the mammalian genome. This step helps reduce potential false positive predictions by ocrRBBR and can be omitted if desired.
 ```R
 peak_info <- atacseq[rownames(atacseq_gene), 1:8]
 
@@ -79,7 +79,7 @@ peak_info <- peak_info[ ((peak_info$mm10.60way.phastCons_scores>=a)&(peak_info$`
 log_atacseq <- atacseq_data_scaled[ ,row.names(peak_info)]
 ```
 
-### Step 6. Extract and rescale RNA-seq data for the target gene across blood cell lineages.
+#### Step 6. Extract and rescale RNA-seq data for the target gene across blood cell lineages.
 ```R
 rnaseq_gene <- rnaseq[(rnaseq$X %in% gene_id), ]
 rnaseq_gene <- rnaseq_gene[ ,(colnames(rnaseq_gene) %in% cells_types)]
@@ -95,7 +95,7 @@ data_scaled <- replace(data_scaled, data_scaled<=0, 0.0001)
 head(data_scaled)
 ```
 
-### Step 7. Train the model and output the predicted Boolean regulatory rules.
+#### Step 7. Train the model and output the predicted Boolean regulatory rules.
 ```R
 rbbr           <- rbbr_train(data_scaled, max_feature = min(3,ncol(data_scaled)-1), mode = "1L", slope = 10, penalty = NA, weight_threshold = NA, num_cores = NA)
 training process started with  8  computing cores
