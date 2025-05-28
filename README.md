@@ -3,7 +3,7 @@
 - Sample datasets to execute ocrRBBR are stored within the Data directory.
 - The ocrRBBR package supports parallel execution on multi-CPU platforms, enhancing accessibility for real-world Boolean rule inference applications.
 
-### Step 1. ocrRBBR installation
+#### Step 1. ocrRBBR installation
 The ocrRBBR codes are written in R version 4.1.3 and have been tested in both Windows and Linux environments. 
 
 ### Installation
